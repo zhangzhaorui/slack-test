@@ -171,7 +171,7 @@ func getEvent(watchType string) {
 						return
 					}
 
-					if event.Type == "ADDED" && event.Object.(*ds.EventObject).Reason == "Started" && judgeEvent(event) {
+					if event.Object.(*ds.EventObject).Kind == "Event" && event.Object.(*ds.EventObject).Reason == "Started" && judgeEvent(event) {
 						sendToSlack(event)
 					}
 
@@ -180,12 +180,14 @@ func getEvent(watchType string) {
 					event.Object = &object
 					fmt.Println("watch type:", watchType)
 					json.Unmarshal(status.Info, &event)
-					if err != nil {
+					if err != nil || event.Type == "" {
 						fmt.Println("Unmarshal err:", err)
 						return
 					}
+					if event.Object.(*ds.ResourcequotasObject).Kind == "ResourceQuota" && event.Object.(*ds.ResourcequotasObject).Spec.Hard.RequestsCpu != "" {
+						sendToSlack(event)
+					}
 					//fmt.Println(event.Object)
-					sendToSlack(event)
 				}
 
 				//events = append(events, event)
